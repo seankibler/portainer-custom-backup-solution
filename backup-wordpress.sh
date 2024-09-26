@@ -5,6 +5,13 @@ set -eu
 DATE=$(date +%F)
 STACK=$1
 BACKUP_PATH=/data/backups/$DATE/$STACK
+
+# NOTICE!
+# These must match the Docker container names that the Stack deploys!
+#
+# If the service names are changed in the Docker Compose file then
+# the name suffixes here will need to be updated to match, otherwise the
+# backup will fail!
 WP_CONTAINER_NAME=${STACK}-blog-1
 DB_CONTAINER_NAME=${STACK}-mysql-1
 
@@ -19,28 +26,25 @@ fi
 mkdir -p $BACKUP_PATH
 
 #
-# Files
+# Backup Files
 #
 docker run --rm --volumes-from $WP_CONTAINER_NAME \
 	-v $BACKUP_PATH:/backup debian:latest \
 	tar -czvf /backup/wordpress.tar.gz /var/www/html
 
 
-# @refactor this is fairly fragile
 ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
 DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
 MYSQL_VERSION=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_MAJOR"))) | first | match("MYSQL_MAJOR=(.*+)"; "g") | .captures | first | .string')
 
-# Only works for Portainer WordPress Stack Template available in Portainer API endpoint
-#ROOT_PASSWORD=$(stack_details $STACK | \
-	#jq -r '.Env | .[] | select(.name | contains("MYSQL_DATABASE_PASSWORD")) | .value')
-
+# Build a credential file and mount it in. This is for better security versus
+# providing the password in command line argument.
 touch /tmp/mysql-$STACK-credential
 chmod 600 /tmp/mysql-$STACK-credential
 echo -e "[client]\npassword=$ROOT_PASSWORD" > /tmp/mysql-$STACK-credential
 
 #
-# Database
+# Backup Database
 #
 docker run --rm -v $BACKUP_PATH:/backup -v /tmp/mysql-$STACK-credential:/root/.my.cnf \
 	--network container:$DB_CONTAINER_NAME \
@@ -49,4 +53,5 @@ docker run --rm -v $BACKUP_PATH:/backup -v /tmp/mysql-$STACK-credential:/root/.m
 	--user root \
 	--result-file /backup/wordpress.sql
 
+# Clean up credential file on host filesystem
 rm -f /tmp/mysql-$STACK-credential
