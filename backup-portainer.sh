@@ -2,7 +2,7 @@
 
 DATE=$(date +%F)
 BACKUP_PATH=/data/backups/$DATE/portainer
-PAYLOAD=$(jq -n --arg pass "$PORTAINER_BACKUP_PASSWORD" '{password: pass}')
+PAYLOAD=$(jq -n --arg pass "$PORTAINER_BACKUP_PASSWORD" '{password: $pass}')
 
 mkdir -p $BACKUP_PATH
 
