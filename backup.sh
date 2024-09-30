@@ -5,21 +5,21 @@ set -u
 BUCKET_PATH=$1
 
 # System services
-backup-portainer.sh
-backup-traefik.sh
+/usr/local/bin/backup-portainer.sh
+/usr/local/bin/backup-traefik.sh
 
 # WordPress Sites
-backup-wordpress.sh therealandiekat-wordpress-www
-backup-wordpress.sh averybros-wordpress-www
-backup-wordpress.sh seahunny-wordpress-www
-backup-wordpress.sh fieldday-wordpress-www
-backup-wordpress.sh tipsytraveler-wordpress-www
-backup-wordpress.sh sos-wordpress-www
-backup-wordpress.sh solaris-wordpress-www-new
+/usr/local/bin/backup-wordpress.sh therealandiekat-wordpress-www
+/usr/local/bin/backup-wordpress.sh averybros-wordpress-www
+/usr/local/bin/backup-wordpress.sh seahunny-wordpress-www
+/usr/local/bin/backup-wordpress.sh fieldday-wordpress-www
+/usr/local/bin/backup-wordpress.sh tipsytraveler-wordpress-www
+/usr/local/bin/backup-wordpress.sh sos-wordpress-www
+/usr/local/bin/backup-wordpress.sh solaris-wordpress-www-new
 
 
 # Nextcloud
-backup-nextcloud.sh nextcloud
+/usr/local/bin/backup-nextcloud.sh nextcloud
 
 # Upload to cloud
-backup-upload.sh $BUCKET_PATH
+/usr/local/bin/backup-upload.sh $BUCKET_PATH
