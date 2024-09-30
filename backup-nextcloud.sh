@@ -2,6 +2,12 @@
 
 set -eu
 
+if [ -z $1 ]; then
+	echo "STACK is a required argument." 2>&1
+	echo "Usage: $0 <STACK_NAME>" 2>&1
+	exit 1
+fi
+
 DATE=$(date +%F)
 STACK=$1
 BACKUP_PATH=/data/backups/$DATE/$STACK
@@ -14,12 +20,6 @@ BACKUP_PATH=/data/backups/$DATE/$STACK
 # backup will fail!
 NC_CONTAINER_NAME=${STACK}-nextcloud-1
 DB_CONTAINER_NAME=${STACK}-mysql-1
-
-if [ -z $STACK ]; then
-	echo "STACK is a required argument." 2>&1
-	echo "Usage: $0 <STACK_NAME>" 2>&1
-	exit 1
-fi
 
 mkdir -p $BACKUP_PATH
 
