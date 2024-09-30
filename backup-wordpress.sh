@@ -26,33 +26,42 @@ mkdir -p $BACKUP_PATH
 #
 # Backup Files
 #
-docker run --rm --volumes-from $WP_CONTAINER_NAME \
-	-v $BACKUP_PATH:/backup debian:latest \
-	tar -czvf /backup/wordpress.tar.gz /var/www/html
+WP_STATUS=$(docker inspect $WP_CONTAINER_NAME | jq -r '.[].State.Status')
 
-docker exec $WP_CONTAINER_NAME grep -i 'wp_version =' wp-includes/version.php | awk -F"'" '{ print $2 }' > ${BACKUP_PATH}/wp_version.txt
+if [[ $WP_STATUS = "running" ]]; then
+	docker run --rm --volumes-from $WP_CONTAINER_NAME \
+		-v $BACKUP_PATH:/backup debian:latest \
+		tar -czvf /backup/wordpress.tar.gz /var/www/html
 
-ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
-DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
-MYSQL_VERSION=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_MAJOR"))) | first | match("MYSQL_MAJOR=(.*+)"; "g") | .captures | first | .string')
+	docker exec $WP_CONTAINER_NAME grep -i 'wp_version =' wp-includes/version.php | awk -F"'" '{ print $2 }' > ${BACKUP_PATH}/wp_version.txt
+fi
 
-echo "${MYSQL_VERSION}" > ${BACKUP_PATH}/mysql_version.txt
-
-# Build a credential file and mount it in. This is for better security versus
-# providing the password in command line argument.
-touch /tmp/mysql-$STACK-credential
-chmod 600 /tmp/mysql-$STACK-credential
-echo -e "[client]\npassword=$ROOT_PASSWORD" > /tmp/mysql-$STACK-credential
 
 #
 # Backup Database
 #
-docker run --rm -v $BACKUP_PATH:/backup -v /tmp/mysql-$STACK-credential:/root/.my.cnf \
-	--network container:$DB_CONTAINER_NAME \
-	mysql:$MYSQL_VERSION \
-	mysqldump --databases $DATABASE_NAME --host $DB_CONTAINER_NAME \
-	--user root \
-	--result-file /backup/wordpress.sql
+DB_STATUS=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[].State.Status')
 
-# Clean up credential file on host filesystem
-rm -f /tmp/mysql-$STACK-credential
+if [[ $DB_STATUS = "running" ]]; then
+	ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
+	DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
+	MYSQL_VERSION=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_MAJOR"))) | first | match("MYSQL_MAJOR=(.*+)"; "g") | .captures | first | .string')
+
+	echo "${MYSQL_VERSION}" > ${BACKUP_PATH}/mysql_version.txt
+
+	# Build a credential file and mount it in. This is for better security versus
+	# providing the password in command line argument.
+	touch /tmp/mysql-$STACK-credential
+	chmod 600 /tmp/mysql-$STACK-credential
+	echo -e "[client]\npassword=$ROOT_PASSWORD" > /tmp/mysql-$STACK-credential
+
+	docker run --rm -v $BACKUP_PATH:/backup -v /tmp/mysql-$STACK-credential:/root/.my.cnf \
+		--network container:$DB_CONTAINER_NAME \
+		mysql:$MYSQL_VERSION \
+		mysqldump --databases $DATABASE_NAME --host $DB_CONTAINER_NAME \
+		--user root \
+		--result-file /backup/wordpress.sql
+
+	# Clean up credential file on host filesystem
+	rm -f /tmp/mysql-$STACK-credential
+fi
