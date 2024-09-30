@@ -37,6 +37,8 @@ ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | 
 DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
 MYSQL_VERSION=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_MAJOR"))) | first | match("MYSQL_MAJOR=(.*+)"; "g") | .captures | first | .string')
 
+echo "${MYSQL_VERSION}" > ${BACKUP_PATH}/mysql_version.txt
+
 # Build a credential file and mount it in. This is for better security versus
 # providing the password in command line argument.
 touch /tmp/mysql-$STACK-credential

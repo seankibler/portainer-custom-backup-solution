@@ -30,10 +30,13 @@ docker run --rm --volumes-from $NC_CONTAINER_NAME \
 	-v $BACKUP_PATH:/backup debian:latest \
 	tar -czvf /backup/nextcloud.tar.gz /var/www/html
 
+docker exec -u www-data $NC_CONTAINER_NAME php occ --version > ${BACKUP_PATH}/nextcloud_version.txt
 
 ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
 DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
 MARIADB_IMAGE_VERSION=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config | .Labels | ."org.opencontainers.image.version"')
+
+echo "${MARIADB_IMAGE_VERSION}" > ${BACKUP_PATH}/mariadb_version.txt
 
 # Build a credential file and mount it in. This is for better security versus
 # providing the password in command line argument.
