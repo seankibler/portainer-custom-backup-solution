@@ -77,11 +77,17 @@ The files are organized with a path scheme as follows:
 
 `/backups/<yyyy-mm-dd>/<service>/`
 
+If you rebuild your VPS as part of recovery be sure to re-install the backup scripts to continue backing up the new host!
+
 ### Portainer + Traefik
 
 Download the portainer backup and the traefik backup from the cloud storage (ex: AWS S3).
 
 You should end up with a `portainer.tar.gz.encrypted` and for Traefik an `acme.json`.
+
+You'll need to upload the docker-compose.yml that you use to deploy Portainer + Traefik as well as the acme.json to the host (VPS).
+
+You will keep the Portainer backup file on your computer that you'll use to access the Portainer web UI.
 
 Deploy Portainer/Traefik using the Docker Compose file ensuring that the `acme.json` from the backup file is available on the file system and the relative path matches what is specified in the Docker Compose file. 
 
