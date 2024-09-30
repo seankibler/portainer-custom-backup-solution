@@ -3,13 +3,15 @@
 - Cron (present by default on Debian/Ubuntu)
 - Portainer API Key of an Administrator user
 - Portainer Hostname
-- AWS S3 Bucket and Credentials with read/write access
+- AWS S3-compatible cloud storage bucket (ex: Digital Ocean Spaces) and Credentials with read/write access
 - [jq](https://jqlang.github.io/jq/download/)
 
 ## Installation
+Place all shell script files ending in `.sh` into path `/usr/local/bin/` on the host system (VPS) and ensure they are executable.
+
 Set the following entries in either root user or system cron table
 
-### Root user Cron
+** Root User Cron **
 As root on host system edit the crontab with the following command:
 
 ```bash
@@ -18,21 +20,53 @@ crontab -e
 
 This will prompt you to choose an editor, you'll probably want to choose nano.
 
-Add the following entries at the bottom:
+** System Cron **
+
+Using the editor of your choice (nano recommended) install the below lines to `/etc/cron.d/backup`
+
+Whichever method you choose, add the following entries at the bottom:
 
 ```bash
-PORTAINER_HOST=<YOUR PORTAINER HOST>
-PORTAINER_BACKUP_PASSWORD=<ENCRYPTION PASSWORD HERE>
-PORTAINER_API_TOKEN=<PORTAINER API TOKEN>
+PORTAINER_API_TOKEN=api_token                           # Replace with your own value
+PORTAINER_HOST=portainer.mydomain.local                 # Replace with your own value
+PORTAINER_BACKUP_PASSWORD=somepassword                  # Replace with your own value
+AWS_ACCESS_KEY_ID=access_key                            # Replace with your own value
+AWS_SECRET_ACCESS_KEY=secret_access_key                 # Replace with your own value
+S3_HOST=sfo2.digitaloceanspaces.com                     # Adjust according to your needs
+S3_HOST_BUCKET="%(bucket)s.sfo2.digitaloceanspaces.com" # Adjust according to your needs
 
-@daily /root/portainer/backup-portainer.sh
-@daily /root/portainer/backup-traefik.sh
-@daily /root/portainer/backup-wordpress.sh <stack name>
-@daily /root/portainer/backup-wordpress.sh <other stack name>
+23 30 * * * /usr/local/bin/backup.sh
 ```
 
-### System Cron
-@todo
+## Adding a New Site
+
+If you deploy more WordPress/Nextcloud sites that you want to be included in the backup you will need to add them to the backup.sh script.
+
+Most importantly, the new entries MUST be added before the `backup-upload.sh` entry.
+
+The names should match the Stack name in Portainer.
+
+Here's an example below.
+
+```bash
+# System services
+backup-portainer.sh
+backup-traefik.sh
+
+# WordPress Sites
+backup-wordpress.sh seahunny-wordpress-www
+backup-wordpress.sh averybros-wordpress-www
+backup-wordpress.sh sos-wordpress-www
+backup-wordpress.sh newsite-wordpress-www # ADDED NEW SITE HERE
+
+# Nextcloud
+backup-nextcloud.sh nextcloud
+backup-nextcloud.sh averybros-nextcloud # ADDED NEW NEXTCLOUD SITE HERE
+
+# Upload to cloud
+backup-upload.sh $BUCKET_PATH
+
+```
 
 ## Recovering from Backups
 
@@ -56,5 +90,57 @@ Deploy Portainer/Traefik using the Docker Compose file ensuring that the `acme.j
 Follow Portainer docs on [Restoring from a local file](https://docs.portainer.io/admin/settings/general#restoring-from-a-local-file).
 
 ### WordPress
+** Files (plugins, templates, etc) **
+
+Download the relevant WordPress data tar from backup storage and place it onto the cloud host running Portainer.
+
+Lets assume the backup filename and path is `/data/backups/2024-09-25/mysite/wordpress.tar.gz`
+
+```bash
+docker run --rm --volumes-from mysite-wordpress-1 -v /data/backups/2024-09-25/mysite:/backup debian:latest sh -c 'tar -xvzf /backup/wordpress.tar.gz'
+```
+
+** Database **
+
+Download the relevant WordPress database dump from backup storage and place it onto the cloud host running Portainer.
+
+Execute the following on the Portainer cloud host, lets assume the backup filename is `wordpress.sql` and the database container is named `mysite-db-1`
+
+```bash
+docker cp wordpress.sql mysite-db-1:/tmp/wordpress.sql
+docker exec -it mysite-db-1 sh -c 'mysql -u root --password < /tmp/wordpress.sql'
+```
+
+You'll be prompted for the root user mysql password, this can be found in the environment settings of the database container in Portainer.
+
+Once entered correctly the command prompt should return with no output and the database should be restored.
+
+At this point the relevant WordPress site should be working again.
+
 
 ### Nextcloud
+
+The recovery process is very similar to the process for WordPress. The difference is the database tool is mariadb not mysql.
+
+Lets assume the backup filename and path is `/data/backups/2024-09-25/nextcloud/nextcloud.tar.gz`
+
+```bash
+docker run --rm --volumes-from nextcloud-nextcloud-1 -v /data/backups/2024-09-25/nextcloud:/backup debian:latest sh -c 'tar -xvzf /backup/nextcloud.tar.gz'
+```
+
+** Database **
+
+Download the relevant Nextcloud database dump from backup storage and place it onto the cloud host running Portainer.
+
+Execute the following on the Portainer cloud host, lets assume the backup path and filename is `/data/backup/2024-09-25/nextcloud/nextcloud.sql` and the database container is named `nextcloud-mysql-1`
+
+```bash
+docker cp nextcloud.sql nextcloud-mysql-1:/tmp/nextcloud.sql
+docker exec -it nextcloud-mysql-1 sh -c 'mariadb -u root --password < /tmp/nextcloud.sql'
+```
+
+You'll be prompted for the root user mariadb password, this can be found in the environment settings of the database container in Portainer.
+
+Once entered correctly the command prompt should return with no output and the database should be restored.
+
+At this point the Nextcloud site should be working again.
