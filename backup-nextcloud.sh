@@ -26,9 +26,9 @@ mkdir -p $BACKUP_PATH
 #
 # Backup Files
 #
-#docker run --rm --volumes-from $NC_CONTAINER_NAME \
-#	-v $BACKUP_PATH:/backup debian:latest \
-#	tar -czvf /backup/nextcloud.tar.gz /var/www/html
+docker run --rm --volumes-from $NC_CONTAINER_NAME \
+	-v $BACKUP_PATH:/backup debian:latest \
+	tar -czvf /backup/nextcloud.tar.gz /var/www/html
 
 
 ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
