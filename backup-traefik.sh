@@ -7,4 +7,4 @@ mkdir -p $BACKUP_PATH
 
 docker run --rm --volumes-from traefik \
 	-v $BACKUP_PATH:/backup debian:latest \
-	cp -a /acme.json /backup/acme.json
+	cp -a /acme.json /traefik.toml /backup/
