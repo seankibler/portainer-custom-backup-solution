@@ -32,6 +32,7 @@ docker run --rm --volumes-from $WP_CONTAINER_NAME \
 	-v $BACKUP_PATH:/backup debian:latest \
 	tar -czvf /backup/wordpress.tar.gz /var/www/html
 
+docker exec $WP_CONTAINER_NAME grep -i 'wp_version =' wp-includes/version.php | awk -F"'" '{ print $2 }' > ${BACKUP_PATH}/wp_version.txt
 
 ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_ROOT_PASSWORD"))) | first | match("MYSQL_ROOT_PASSWORD=(.*+)"; "g") | .captures | first | .string')
 DATABASE_NAME=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | map(select(. | startswith("MYSQL_DATABASE"))) | first | match("MYSQL_DATABASE=(.*+)"; "g") | .captures | first | .string')
