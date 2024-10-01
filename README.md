@@ -5,8 +5,16 @@
 - Portainer Hostname
 - AWS S3-compatible cloud storage bucket (ex: Digital Ocean Spaces) and Credentials with read/write access
 - [jq](https://jqlang.github.io/jq/download/) 
+- curl
+
 ## Installation
 Simply run `./install.sh` or manually place all shell script files ending in `.sh` into path `/usr/local/bin/` on the host system (VPS) and ensure they are executable.
+
+Install package dependencies
+
+```bash
+sudo apt-get update -y && sudo apt-get install -y jq curl
+```
 
 Set the following entries in either root user OR system cron table; DO NOT USE BOTH!
 
@@ -33,7 +41,7 @@ This will prompt you to choose an editor, you'll probably want to choose nano.
 
 ### System Cron ###
 
-Using the editor of your choice (nano recommended) install the below lines to `/etc/cron.d/backup`
+Using the editor of your choice (nano recommended) install the above lines to `/etc/cron.d/backup`
 
 Whichever method you choose, add the following entries at the bottom:
 
