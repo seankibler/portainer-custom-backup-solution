@@ -12,11 +12,11 @@ if [ -z "${PORTAINER_BACKUP_PASSWORD}" ]; then
 	curl -H "X-API-Key:$PORTAINER_API_TOKEN" -H 'Content-Type: application/json' \
 		-d "$PAYLOAD" \
 		-o $BACKUP_PATH/portainer.tar.gz \
-		"'${PORTAINER_URL}/api/backup'"
+		"${PORTAINER_URL}/api/backup"
 else
 	PAYLOAD=$(jq -n --arg pass "$PORTAINER_BACKUP_PASSWORD" '{password: $pass}')
 	curl -H "X-API-Key:$PORTAINER_API_TOKEN" -H 'Content-Type: application/json' \
 		-d "$PAYLOAD" \
 		-o $BACKUP_PATH/portainer.tar.gz.encrypted \
-		"'${PORTAINER_URL}/api/backup'"
+		"${PORTAINER_URL}/api/backup"
 fi
