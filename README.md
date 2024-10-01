@@ -71,13 +71,17 @@ Here's an example below.
 This Backup/Recovery scheme is specifically designed around using Portainer CE and Traefik together
 and assumes the deployment is from a Docker Compose file.
 
-The backup files are stored in cloud storage like AWS S3.
+The backup files are stored in AWS S3-compatible cloud storage like AWS S3 or Digital Ocean Spaces.
 
 The files are organized with a path scheme as follows:
 
 `/backups/<yyyy-mm-dd>/<service>/`
 
-If you rebuild your VPS as part of recovery be sure to re-install the backup scripts to continue backing up the new host!
+With this path scheme backups will be retained for one year before being overwritten.
+
+If you rebuild your VPS as part of recovery be sure to re-install the backup scripts to continue backing up on the new host!
+
+If you are attempting a total recovery in the event that the entire VPS was lost you will start by doing a fresh install of Portainer on your new VPS then restore Portainer using the Portainer backup file. See further instructions below. Then you will have your Portainer environment with all of your custom templates available. You'll need to deploy each site fresh from the custom template, then follow the instructions in [WordPress](/#WordPress) or [NextCloud](/#Nextcloud) section to restore each site from backup data.
 
 ### Portainer + Traefik
 
