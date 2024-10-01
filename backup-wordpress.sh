@@ -53,7 +53,7 @@ if [[ $DB_STATUS = "running" ]]; then
 	# providing the password in command line argument.
 	touch /tmp/mysql-$STACK-credential
 	chmod 600 /tmp/mysql-$STACK-credential
-	echo -e "[client]\npassword=$ROOT_PASSWORD" > /tmp/mysql-$STACK-credential
+	echo -e "[client]\npassword=\"$ROOT_PASSWORD\"" > /tmp/mysql-$STACK-credential
 
 	docker run --rm -v $BACKUP_PATH:/backup -v /tmp/mysql-$STACK-credential:/root/.my.cnf \
 		--network container:$DB_CONTAINER_NAME \
