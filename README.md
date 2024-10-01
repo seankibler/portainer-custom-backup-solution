@@ -20,7 +20,7 @@ Set the following entries in either root user OR system cron table; DO NOT USE B
 
 ```bash
 PORTAINER_API_TOKEN=api_token                           # Replace with your own value
-PORTAINER_HOST=portainer.mydomain.local                 # Replace with your own value
+PORTAINER_URL=https://portainer.mydomain.local          # Replace with your own value
 PORTAINER_BACKUP_PASSWORD=somepassword                  # Replace with your own value
 AWS_ACCESS_KEY_ID=access_key                            # Replace with your own value
 AWS_SECRET_ACCESS_KEY=secret_access_key                 # Replace with your own value
