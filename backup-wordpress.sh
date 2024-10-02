@@ -2,9 +2,18 @@
 
 set -eu
 
+function usage() {
+	echo "Usage: $0 <STACK>" 2>&1
+}
+
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+	usage
+	exit 0
+fi
+
 if [ -z $1 ]; then
 	echo "STACK is a required argument." 2>&1
-	echo "Usage: $0 <STACK_NAME>" 2>&1
+	usage
 	exit 1
 fi
 

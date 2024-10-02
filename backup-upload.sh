@@ -2,6 +2,16 @@
 
 set -eu
 
+function usage() {
+	echo "Usage: $0 <BUCKET_PATH>" 2>&1
+	echo "Example: $0 s3://sos-backups/" 2>&1
+}
+
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+	usage
+	exit 0
+fi
+
 BACKUP_BUCKET_PATH=$1
 BACKUP_PATH=/data/backups
 S3CMD_IMAGE_VERSION=stable
