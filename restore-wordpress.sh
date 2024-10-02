@@ -75,10 +75,11 @@ ROOT_PASSWORD=$(docker inspect $DB_CONTAINER_NAME | jq -r '.[0] | .Config.Env | 
 # providing the password in command line argument.
 touch /tmp/mysql-$STACK-credential
 chmod 600 /tmp/mysql-$STACK-credential
-echo -e "[client]\npassword=\"$ROOT_PASSWORD\"" > /tmp/mysql-$STACK-credential
+echo -e "[client]\nuser=root\npassword=\"$ROOT_PASSWORD\"" > /tmp/mysql-$STACK-credential
 
 docker cp /tmp/mysql-$STACK-credential ${DB_CONTAINER_NAME}:/root/.my.cnf
 docker cp ${BACKUP_PATH}/wordpress.sql ${DB_CONTAINER_NAME}:/tmp/wordpress.sql
-docker exec -it ${DB_CONTAINER_NAME} sh -c 'mysql -u root -v < /tmp/wordpress.sql'
+docker exec ${DB_CONTAINER_NAME} sh -c 'mysql -u root -v < /tmp/wordpress.sql'
+docker exec ${DB_CONTAINER_NAME} rm -f /root/.my.cnf
 
 echo "Finished!"
