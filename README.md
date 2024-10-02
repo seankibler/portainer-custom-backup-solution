@@ -27,7 +27,7 @@ AWS_SECRET_ACCESS_KEY=secret_access_key                 # Replace with your own 
 S3_HOST=sfo2.digitaloceanspaces.com                     # Adjust according to your needs
 S3_HOST_BUCKET="%(bucket)s.sfo2.digitaloceanspaces.com" # Adjust according to your needs
 
-23 30 * * * /usr/local/bin/backup.sh
+30 23 * * * /usr/local/bin/backup.sh s3://sos-backups
 ```
 
 ### Root User Cron ###
@@ -47,7 +47,7 @@ Whichever method you choose, add the following entries at the bottom:
 
 ## Adding a New Site
 
-If you deploy more WordPress/Nextcloud sites that you want to be included in the backup you will need to add them to the `backup.sh` script.
+If you deploy more WordPress/Nextcloud sites that you want to be included in the backup you will need to add them to the `/usr/local/bin/backup.sh` script.
 
 Most importantly, the new entries MUST be added before the `backup-upload.sh` entry.
 
