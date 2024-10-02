@@ -108,6 +108,21 @@ Deploy Portainer/Traefik using the Docker Compose file ensuring that the `acme.j
 Follow Portainer docs on [Restoring from a local file](https://docs.portainer.io/admin/settings/general#restoring-from-a-local-file).
 
 ### WordPress
+There are helper scripts to assist in recovery, manual steps are still documented below.
+
+Use the retrieve.sh script to to download and store the backups for the stack to the local server. The example below is for the stack `mysite-wordpress-www` on the date 2024-10-02 to the server backup path `/data/backups/2024-10-02/mysite-wordpress-www`.
+
+```bash
+/usr/local/bin/retrieve.sh s3://sos-backups mysite-wordpress-www 2024-10-02 
+```
+
+Next use the restore-wordpress.sh script to apply the backup files and database to the live running containers for the named stack. The same values are used from above in the below example.
+
+```bash
+/usr/local/bin/restore-wordpress.sh mysite-wordpress-www 2024-10-02
+```
+
+#### Alternative Manual Restore Steps
 **Files (plugins, templates, etc)**
 
 Download the relevant WordPress data tar from backup storage and place it onto the cloud host running Portainer.
