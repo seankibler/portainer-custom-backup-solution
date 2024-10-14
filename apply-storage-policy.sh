@@ -21,7 +21,6 @@ cat > /tmp/backup-lifecycle-policy <<EOT
 <LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
   <Rule>
     <ID>Expire old logs</ID>
-    <Prefix>web/</Prefix>
     <Status>Enabled</Status>
     <Expiration>
       <Days>$DAYS</Days>
